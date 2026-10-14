@@ -1,6 +1,8 @@
-//g++ main.cpp -o output.exe -lsfml-graphics -lsfml-window -lsfml-system
+//g++ main.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
+//g++ main.cpp Levels.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
 #include<SFML/Graphics.hpp>
 #include<iostream>
+#include "levels.hpp"
 using namespace sf;
 using namespace std;
 int main(){
@@ -62,7 +64,24 @@ int main(){
             if(event->is<Event::Closed>()){
                 window.close();
             }
+            if (const auto* mouseEvent =
+                    event->getIf<Event::MouseButtonPressed>())
+            {
+                if (mouseEvent->button == Mouse::Button::Left)
+                {
+                    Vector2f mousePosition({
+                        static_cast<float>(mouseEvent->position.x),
+                        static_cast<float>(mouseEvent->position.y)
+                    });
+
+                    if (start.getGlobalBounds().contains(mousePosition))
+                    {
+                        LevelWindow();
+                    }
+                }
+            }
          }
+
          window.clear(Color::Black);
          window.draw(background);
          window.draw(title);
@@ -71,6 +90,7 @@ int main(){
          window.draw(howtoplay);
          window.draw(starttext);
          window.draw(howtoplaytext);
+         
          window.display();
     }
     return 0;
