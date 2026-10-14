@@ -1,8 +1,11 @@
 //g++ main.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
 //g++ main.cpp Levels.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
+//g++ main.cpp Levels.cpp rules.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
+
 #include<SFML/Graphics.hpp>
 #include<iostream>
 #include "levels.hpp"
+#include "rules.hpp"
 using namespace sf;
 using namespace std;
 int main(){
@@ -78,10 +81,14 @@ int main(){
                     {
                         LevelWindow();
                     }
+                    if (howtoplay.getGlobalBounds().contains(mousePosition))
+                        {
+                            HowToPlay();
+                        }
+                                            
                 }
             }
          }
-
          window.clear(Color::Black);
          window.draw(background);
          window.draw(title);
