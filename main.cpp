@@ -12,6 +12,7 @@ int main(){
     RenderWindow window (VideoMode({800,600}),"Maze Game");
     window.setFramerateLimit(60);
 
+
     Texture backgroundtexture;
     if(backgroundtexture.loadFromFile("assets/WelcomeScreenBG.png")==false){
         return 1;

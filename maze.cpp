@@ -11,6 +11,12 @@ const int MAX_ROWS=12;
 const int MAX_COLS=12;
 const float START_X=150.f;
 const float START_Y=70.f;
+const int MAX_MONSTERS=5;
+ int monsterRows[MAX_MONSTERS];
+ int monsterCols[MAX_MONSTERS];
+ int monsterCount=0;
+ bool monstersEnabled=false;
+
 
 struct cell{
     int rows;
@@ -180,6 +186,7 @@ void addExtraPaths(int rows, int cols, int extraPaths) {
     }
 }
 
+
 //moving player using keyboard
 void moveplayer(Keyboard::Key k){
     if(won==true) return;
@@ -201,10 +208,10 @@ void moveplayer(Keyboard::Key k){
              << endl;
     }
 }
-void drawmaze(RenderWindow& window){
+void drawmaze(RenderWindow& window, Sprite& playerSprite){
     RectangleShape cellbg;
     RectangleShape cellwall;
-    RectangleShape player;
+    // RectangleShape player;
 
     const int thickness=3.f;
     cellbg.setSize({activecellsize-thickness,activecellsize-thickness});
@@ -242,25 +249,104 @@ void drawmaze(RenderWindow& window){
         }
     }
       // Draw player, sized according to the current cell
-    float playerSize = activecellsize * 0.42f;
-    float playerOffset = (activecellsize - playerSize) / 2.f;
+    float playerSize = activecellsize * 1.0f;
+    Vector2u imageSize=playerSprite.getTexture().getSize();
+    playerSprite.setScale({playerSize/imageSize.x, playerSize/imageSize.y});
+    
+    float playerOffset=(activecellsize-playerSize)/2.f;
 
-    player.setSize({playerSize, playerSize});
-    player.setFillColor(Color::Cyan);
+    playerSprite.setPosition({
+        START_X + playerCol*activecellsize + playerOffset,
+        START_Y + playerRow*activecellsize + playerOffset
+    });
+    window.draw(playerSprite);
 
-    player.setPosition(
-        Vector2f(
-            START_X + playerCol * activecellsize + playerOffset,
-            START_Y + playerRow * activecellsize + playerOffset
-        )
-    );
-
-    window.draw(player);
 }
+void setupMonsters(int count){
+    monsterCount=0;
+    if(monstersEnabled==false){
+        return;
+    }
+    while(monsterCount<count){
+        int row=rand()%activeRows;
+        int col=rand()%activeCols;
 
-void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timerenabled){
+        if(row==0 && col==0 || row==activeRows-1 && col==activeCols-1 ){
+            continue;
+        }
+        bool occupied=false;
+        for(int i=0; i<monsterCount; i++){
+            if(monsterRows[i]==row && monsterCols[i]==col){
+                occupied=true;
+                break;
+            }
+        }
+        if(occupied==false){
+            monsterRows[monsterCount]=row;
+            monsterCols[monsterCount]=col;
+            monsterCount++;
+        }
+
+    }
+}
+void drawMonsters(RenderWindow& window, Sprite& monsterSprite){
+    if(monstersEnabled==false){
+        return;
+    }
+    float monsterSize=activecellsize*1.0f;
+    Vector2u imageSize = monsterSprite.getTexture().getSize();
+    monsterSprite.setScale({monsterSize/imageSize.x,monsterSize/imageSize.y});
+    // CircleShape monster(activecellsize*0.25f);
+    // monster.setFillColor(Color::Red);
+    for(int i=0; i<monsterCount;i++){
+        float x=START_X + monsterCols[i]*activecellsize;
+        float y=START_Y + monsterRows[i]*activecellsize;
+
+        monsterSprite.setPosition({
+            x+(activecellsize-monsterSize)/2.f,
+            y+(activecellsize-monsterSize)/2.f
+        });
+        window.draw(monsterSprite);
+
+    }
+}
+void checkMonsterCollision(){
+    if(monstersEnabled==false){
+        return;
+    }
+    for(int i=0; i<monsterCount; i++){
+        if(playerRow==monsterRows[i] && playerCol==monsterCols[i]){
+            playerRow=0;
+            playerCol=0;
+            cout<<"Monster Caught You! Restart"<<endl;
+            
+        }
+    }
+
+    return;
+}
+void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timerenabled, bool enableMonsters, const string& BackgroundPath, int level){
     activecellsize = cellsize;
+    Texture backgroundTexture;
+    Texture playerTexture;
+
+
+    if(backgroundTexture.loadFromFile(BackgroundPath)==false){
+        cout<<"background img load nhi hui";
+        return;
+    }
+    Sprite backgroundSprite(backgroundTexture);
+    Vector2u windowSize=window.getSize();
+    Vector2u imageSize=backgroundTexture.getSize();
+
+    backgroundSprite.setScale({static_cast<float>(windowSize.x)/imageSize.x,
+                             static_cast<float>(windowSize.y)/imageSize.y
+    });
+
+
     generate_maze(rows, cols);
+    monstersEnabled=enableMonsters;
+    setupMonsters(2);
     addExtraPaths(rows, cols, 8);
     Clock timer;
     int timelimit=60;
@@ -275,6 +361,28 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
     timerText.setPosition({20.f, 20.f});
 
     bool returnToMenu = false;
+
+    if(playerTexture.loadFromFile("assets/player.png")==false){
+        cout<<"player load nhi hui"<<endl;
+        return;
+    }
+    Sprite playerSprite(playerTexture);
+    
+    Texture snakeTexture;
+    Texture skeletonTexture;
+
+    if(snakeTexture.loadFromFile("assets/snake.png")==false){
+        cout<<"snake nhi horaha load"<<endl;
+        return;
+    }
+     if(skeletonTexture.loadFromFile("assets/skeleton.png")==false){
+        cout<<"skeleton nhi horaha load"<<endl;
+        return;
+    }
+    Sprite snakeSprite(snakeTexture);
+    Sprite skeletonSprite(skeletonTexture);
+
+
     while (window.isOpen() && !returnToMenu) {
         
         if (!window.isOpen()) {
@@ -311,14 +419,23 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 }
                 else {
                     moveplayer(keyEvent->code);
+                    checkMonsterCollision();
                 }
             }
         }
-        window.clear(Color(30, 30, 40));
-        drawmaze(window);
+        window.clear();
+        window.draw(backgroundSprite);
+        drawmaze(window, playerSprite);
+        if(level==4){
+        drawMonsters(window,snakeSprite);
+        }
+        else if(level==5){
+        drawMonsters(window,skeletonSprite);
+        }
         if(timerenabled==true){
             window.draw(timerText);
         }
+        
         window.display();
     }
 }
@@ -329,7 +446,7 @@ int main(){
         "MAZE RUNNER"
     );
     window.setFramerateLimit(60);
-    runmaze(window, 12, 12, 30.f, false);
+    runmaze(window, 12, 12, 30.f, true, true,"assets/level4bg.png",4);
     return 0;
 
 }
