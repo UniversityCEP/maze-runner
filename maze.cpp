@@ -258,12 +258,48 @@ void drawmaze(RenderWindow& window){
     window.draw(player);
 }
 
-void runmaze(RenderWindow& window,int rows,int cols,float cellsize){
+void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timerenabled){
     activecellsize = cellsize;
     generate_maze(rows, cols);
     addExtraPaths(rows, cols, 8);
+    Clock timer;
+    int timelimit=60;
+    Font font;
+    if(font.openFromFile("assets/font.ttf")==false){
+        cout<<"Not load."<<endl;
+        return;
+    }
+    Text timerText(font);
+    timerText.setCharacterSize(24);
+    timerText.setFillColor(Color::White);
+    timerText.setPosition({20.f, 20.f});
+
     bool returnToMenu = false;
     while (window.isOpen() && !returnToMenu) {
+        
+        if (!window.isOpen()) {
+            break;
+        }
+        if(timerenabled==true && won==false){
+            int remainingtime=timelimit-static_cast<int>(timer.getElapsedTime().asSeconds());
+        
+            if(remainingtime<0){
+                remainingtime=0;
+            }
+    
+            if(won==true){      
+            }
+            else{
+                timerText.setString(
+                    "Time: "+to_string(remainingtime)
+                );
+                if(remainingtime==0 && won==false){
+                    cout<<"GAME OVER!!"<<endl;
+                    returnToMenu=true;
+                    break;
+                }
+            }
+        }
         while (const optional event = window.pollEvent()) {
             if (event->is<Event::Closed>()) {
                 window.close();
@@ -278,11 +314,11 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize){
                 }
             }
         }
-        if (!window.isOpen()) {
-            break;
-        }
         window.clear(Color(30, 30, 40));
         drawmaze(window);
+        if(timerenabled==true){
+            window.draw(timerText);
+        }
         window.display();
     }
 }
@@ -293,7 +329,7 @@ int main(){
         "MAZE RUNNER"
     );
     window.setFramerateLimit(60);
-    runmaze(window, 12, 12, 30.f);
+    runmaze(window, 12, 12, 30.f, false);
     return 0;
 
 }
