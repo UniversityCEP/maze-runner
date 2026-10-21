@@ -1,11 +1,13 @@
 //g++ main.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
 //g++ main.cpp Levels.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
-//g++ main.cpp Levels.cpp rules.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
+//g++ main.cpp Levels.cpp rules.cpp maze.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
 
 #include<SFML/Graphics.hpp>
 #include<iostream>
 #include "levels.hpp"
 #include "rules.hpp"
+#include "maze.hpp"
+#include<string>
 using namespace sf;
 using namespace std;
 int main(){
@@ -80,7 +82,7 @@ int main(){
 
                     if (start.getGlobalBounds().contains(mousePosition))
                     {
-                        LevelWindow();
+                        LevelWindow(window);
                     }
                     if (howtoplay.getGlobalBounds().contains(mousePosition))
                         {

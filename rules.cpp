@@ -2,6 +2,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "levels.hpp"
 
 using namespace std;
 using namespace sf;
@@ -157,6 +158,9 @@ void HowToPlay()
 
                     if(backBox.getGlobalBounds().contains(mousePosition)){
                         window.close();
+                    }
+                    if(nextBox.getGlobalBounds().contains(mousePosition)){
+                        LevelWindow(window);
                     }
                 }
         }

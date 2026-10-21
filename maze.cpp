@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <optional>
+#include <string>
 #include <ctime>
 using namespace std;
 using namespace sf;
@@ -438,15 +439,4 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
         
         window.display();
     }
-}
-int main(){
-    srand(static_cast<unsigned int>(time(nullptr)));
-    RenderWindow window(
-        VideoMode({800u, 600u}),
-        "MAZE RUNNER"
-    );
-    window.setFramerateLimit(60);
-    runmaze(window, 12, 12, 30.f, true, true,"assets/level4bg.png",4);
-    return 0;
-
 }

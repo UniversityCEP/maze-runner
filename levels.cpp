@@ -4,11 +4,10 @@
 #include "levels.hpp"
 using namespace sf;
 using namespace std;
+#include "maze.hpp"
 
 
-void LevelWindow(){
-    
-    RenderWindow window (VideoMode({800,600}), "Game Levels");
+void LevelWindow(RenderWindow& window){
     window.setFramerateLimit(60);
 
     Font font;
@@ -22,6 +21,7 @@ void LevelWindow(){
 
     string levelnames[5]={"The Hawthorn Hedge", "The Siren's Cove", "Temple Of Apollo", "The Serpent's Lair", "The UnderWorld" };
     string difficulties[5]={"Easy", "Easy", "Medium", "Hard", "Very Hard"};
+    string backgrounds[5]={"assets/level1bg.png","assets/level2bg.png","assets/level3bg.png","assets/level4bg.png","assets/level5bg.png"};
 
     RectangleShape back;
     back.setSize({150.f,45.f});
@@ -57,7 +57,29 @@ void LevelWindow(){
                     });
 
                     if(back.getGlobalBounds().contains(mousePosition)){
-                        window.close();
+                        return;
+                    }
+                    else{
+                        for(int i=0;i<5;i++){
+                            RectangleShape card;
+                            card.setSize({620.f, 72.f});
+                            card.setPosition({90.f,95.f+i*82.f});
+
+                            if(card.getGlobalBounds().contains(mousePosition)){
+                                if(i==0){
+                                    runmaze(window,5,5,70.f,false,false,backgrounds[i],1);
+                                }else if(i==1){
+                                    runmaze(window,7,7,70.f,true,false,backgrounds[i],2);
+                                }else if(i==2){
+                                    runmaze(window,9,9,40.f,true,false,backgrounds[i],3);
+                                }else if(i==3){
+                                    runmaze(window,10,10,35.f,false,true,backgrounds[i],4);
+                                }else if(i==4){
+                                    runmaze(window,12,12,30.f,true,true,backgrounds[i],5);
+                                }
+                                break;
+                            }
+                        } 
                     }
                 }
 
