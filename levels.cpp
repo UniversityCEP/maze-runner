@@ -7,7 +7,73 @@ using namespace std;
 #include "maze.hpp"
 
 
+LevelNode*head=NULL;
+void initializeLevels(){
+    if(head!=NULL){
+        return;
+    }
+    LevelNode* current=NULL;
+    for(int i=1; i<=5; i++){
+        LevelNode* newNode=new LevelNode;
+
+        newNode->levelNumber=i;
+        newNode->unlocked=(i==1);
+        newNode->completed=false;
+        newNode->next=NULL;
+
+        if(head==NULL){
+            head=newNode;
+            current=newNode;
+        }
+        else{
+            current->next=newNode;
+            current=newNode;
+        }
+    }
+}
+bool isLevelUnlocked(int levelNumber){
+    LevelNode* temp=head;
+
+    while(temp!=NULL){
+        if(temp->levelNumber==levelNumber){
+            return temp->unlocked;
+        }
+
+        temp=temp->next;
+    }
+    return false;
+}
+bool isLevelCompleted(int levelNumber){
+    LevelNode* temp=head;
+    while(temp!=NULL){
+        if(temp->levelNumber==levelNumber){
+            return (temp->completed);
+        }
+        temp=temp->next;
+    }
+    return false;
+}
+void unlockNextLevel(int completeLevel){
+    LevelNode* temp=head;
+
+    while(temp!=NULL){
+        if(temp->levelNumber==completeLevel){
+            temp->completed=true;
+            if(temp->next!=NULL){
+                temp->next->unlocked=true;
+            }
+            return;
+        }
+        temp=temp->next;
+
+    }
+
+}
+
+
+
 void LevelWindow(RenderWindow& window){
+    initializeLevels();
     window.setFramerateLimit(60);
 
     Font font;
@@ -66,16 +132,19 @@ void LevelWindow(RenderWindow& window){
                             card.setPosition({90.f,95.f+i*82.f});
 
                             if(card.getGlobalBounds().contains(mousePosition)){
+                                if(isLevelUnlocked(i+1)==false){
+                                    break;
+                                }
                                 if(i==0){
-                                    runmaze(window,5,5,70.f,false,false,backgrounds[i],1);
+                                    runmaze(window,8,8,45.f,false,false,backgrounds[i],1);
                                 }else if(i==1){
-                                    runmaze(window,7,7,70.f,true,false,backgrounds[i],2);
+                                    runmaze(window,10,10,36.f,true,false,backgrounds[i],2);
                                 }else if(i==2){
-                                    runmaze(window,9,9,40.f,true,false,backgrounds[i],3);
+                                    runmaze(window,12,12,30.f,true,false,backgrounds[i],3);
                                 }else if(i==3){
-                                    runmaze(window,10,10,35.f,false,true,backgrounds[i],4);
+                                    runmaze(window,15,15,24.f,false,true,backgrounds[i],4);
                                 }else if(i==4){
-                                    runmaze(window,12,12,30.f,true,true,backgrounds[i],5);
+                                    runmaze(window,20,20,18.f,true,true,backgrounds[i],5);
                                 }
                                 break;
                             }
@@ -92,12 +161,25 @@ void LevelWindow(RenderWindow& window){
         card.setSize({620.f, 72.f});
         card.setPosition({90.f,95.f+i*82.f});
 
-        if(i==0){
-            card.setFillColor(Color(218,199,166));
+        if(isLevelCompleted(i+1)){
+            card.setFillColor(Color(185,205,165));
+        }
+        else if(isLevelUnlocked(i+1)){
+            card.setFillColor(Color(218, 199, 166));
+
         }
         else{
-            card.setFillColor(Color(190,183,170));
+            card.setFillColor(Color(190, 183, 170));
+        }
 
+        if (isLevelCompleted(i+1)){
+            statusText.setString("COMPLETED");
+        }
+        else if(isLevelUnlocked(i+1)){
+            statusText.setString("UNLOCKED");
+        }
+        else{
+            statusText.setString("LOCKED");
         }
         window.draw(card);
 
@@ -109,12 +191,7 @@ void LevelWindow(RenderWindow& window){
         difficultyText.setPosition({110.f,137.f+i*82.f});
         window.draw(difficultyText);
 
-        if(i==0){
-            statusText.setString("UNLOCKED");
-        }
-        else{
-            statusText.setString("LOCKED");
-        }
+       
         statusText.setPosition({560.f,120.f+i*82.f});
         window.draw(statusText);
 

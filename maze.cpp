@@ -5,11 +5,12 @@
 #include <optional>
 #include <string>
 #include <ctime>
+#include "levels.hpp"
 using namespace std;
 using namespace sf;
 
-const int MAX_ROWS=12;
-const int MAX_COLS=12;
+const int MAX_ROWS=20;
+const int MAX_COLS=20;
 const float START_X=150.f;
 const float START_Y=70.f;
 const int MAX_MONSTERS=5;
@@ -214,7 +215,11 @@ void drawmaze(RenderWindow& window, Sprite& playerSprite){
     RectangleShape cellwall;
     // RectangleShape player;
 
-    const int thickness=3.f;
+    float  thickness=activecellsize*0.06f;
+
+    if(thickness<1.f){
+        thickness=1.f;
+    }
     cellbg.setSize({activecellsize-thickness,activecellsize-thickness});
     cellbg.setFillColor(Color(40, 100, 180));
     cellbg.setPosition({START_X+(activeCols-1)*activecellsize,START_Y+(activeRows-1)*activecellsize});
@@ -263,31 +268,194 @@ void drawmaze(RenderWindow& window, Sprite& playerSprite){
     window.draw(playerSprite);
 
 }
-void setupMonsters(int count){
-    monsterCount=0;
-    if(monstersEnabled==false){
+bool safePath[MAX_ROWS][MAX_COLS];
+
+void findSafePath()
+{
+    bool visited[MAX_ROWS][MAX_COLS] = {};
+
+    int parentRow[MAX_ROWS][MAX_COLS];
+    int parentCol[MAX_ROWS][MAX_COLS];
+
+    int queueRows[MAX_ROWS * MAX_COLS];
+    int queueCols[MAX_ROWS * MAX_COLS];
+
+    for (int i = 0; i < activeRows; i++) {
+        for (int j = 0; j < activeCols; j++) {
+            safePath[i][j] = false;
+            parentRow[i][j] = -1;
+            parentCol[i][j] = -1;
+        }
+    }
+
+    int front = 0;
+    int rear = 0;
+
+    queueRows[rear] = 0;
+    queueCols[rear] = 0;
+    rear++;
+
+    visited[0][0] = true;
+
+    while (front < rear) {
+        int row = queueRows[front];
+        int col = queueCols[front];
+        front++;
+
+        if (row == activeRows - 1 &&
+            col == activeCols - 1) {
+            break;
+        }
+
+        // Up
+        if (row > 0 &&
+            !grid[row][col].walltop &&
+            !visited[row - 1][col]) {
+
+            visited[row - 1][col] = true;
+            parentRow[row - 1][col] = row;
+            parentCol[row - 1][col] = col;
+
+            queueRows[rear] = row - 1;
+            queueCols[rear] = col;
+            rear++;
+        }
+
+        // Right
+        if (col < activeCols - 1 &&
+            !grid[row][col].wallright &&
+            !visited[row][col + 1]) {
+
+            visited[row][col + 1] = true;
+            parentRow[row][col + 1] = row;
+            parentCol[row][col + 1] = col;
+
+            queueRows[rear] = row;
+            queueCols[rear] = col + 1;
+            rear++;
+        }
+
+        // Down
+        if (row < activeRows - 1 &&
+            !grid[row][col].wallbottom &&
+            !visited[row + 1][col]) {
+
+            visited[row + 1][col] = true;
+            parentRow[row + 1][col] = row;
+            parentCol[row + 1][col] = col;
+
+            queueRows[rear] = row + 1;
+            queueCols[rear] = col;
+            rear++;
+        }
+
+        // Left
+        if (col > 0 &&
+            !grid[row][col].wallleft &&
+            !visited[row][col - 1]) {
+
+            visited[row][col - 1] = true;
+            parentRow[row][col - 1] = row;
+            parentCol[row][col - 1] = col;
+
+            queueRows[rear] = row;
+            queueCols[rear] = col - 1;
+            rear++;
+        }
+    }
+
+    // Exit se wapas start tak path mark karo
+    int row = activeRows - 1;
+    int col = activeCols - 1;
+
+    if (!visited[row][col]) {
         return;
     }
-    while(monsterCount<count){
-        int row=rand()%activeRows;
-        int col=rand()%activeCols;
 
-        if(row==0 && col==0 || row==activeRows-1 && col==activeCols-1 ){
+    while (row != 0 || col != 0) {
+        safePath[row][col] = true;
+
+        int previousRow = parentRow[row][col];
+        int previousCol = parentCol[row][col];
+
+        row = previousRow;
+        col = previousCol;
+    }
+
+    safePath[0][0] = true;
+}
+// void setupMonsters(int count){
+//     monsterCount=0;
+//     if(monstersEnabled==false){
+//         return;
+//     }
+//     while(monsterCount<count){
+//         int row=rand()%activeRows;
+//         int col=rand()%activeCols;
+
+//         if(row==0 && col==0 || row==activeRows-1 && col==activeCols-1 ){
+//             continue;
+//         }
+//         bool occupied=false;
+//         for(int i=0; i<monsterCount; i++){
+//             if(monsterRows[i]==row && monsterCols[i]==col){
+//                 occupied=true;
+//                 break;
+//             }
+//         }
+//         if(occupied==false){
+//             monsterRows[monsterCount]=row;
+//             monsterCols[monsterCount]=col;
+//             monsterCount++;
+//         }
+
+//     }
+// }
+
+//gpt
+void setupMonsters(int count)
+{
+    monsterCount = 0;
+
+    if (monstersEnabled == false) {
+        return;
+    }
+
+    int attempts = 0;
+    int maxAttempts = activeRows * activeCols * 20;
+
+    while (monsterCount < count &&
+           monsterCount < MAX_MONSTERS &&
+           attempts < maxAttempts) {
+
+        attempts++;
+
+        int row = rand() % activeRows;
+        int col = rand() % activeCols;
+
+        // Safe path par monster nahi hoga
+        if (safePath[row][col]) {
             continue;
         }
-        bool occupied=false;
-        for(int i=0; i<monsterCount; i++){
-            if(monsterRows[i]==row && monsterCols[i]==col){
-                occupied=true;
+
+        bool occupied = false;
+
+        for (int i = 0; i < monsterCount; i++) {
+            int rowDifference = abs(monsterRows[i] - row);
+            int colDifference = abs(monsterCols[i] - col);
+
+            // Same cell ya adjacent cell
+            if (rowDifference + colDifference <= 1) {
+                occupied = true;
                 break;
             }
         }
-        if(occupied==false){
-            monsterRows[monsterCount]=row;
-            monsterCols[monsterCount]=col;
+
+        if (occupied == false) {
+            monsterRows[monsterCount] = row;
+            monsterCols[monsterCount] = col;
             monsterCount++;
         }
-
     }
 }
 void drawMonsters(RenderWindow& window, Sprite& monsterSprite){
@@ -346,9 +514,11 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
 
 
     generate_maze(rows, cols);
-    monstersEnabled=enableMonsters;
-    setupMonsters(2);
     addExtraPaths(rows, cols, 8);
+    monstersEnabled=enableMonsters;
+    findSafePath();
+    setupMonsters(2);
+    
     Clock timer;
     int timelimit=60;
     Font font;
@@ -421,6 +591,12 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 else {
                     moveplayer(keyEvent->code);
                     checkMonsterCollision();
+
+                    if(won==true){
+                        unlockNextLevel(level);
+                        returnToMenu=true;
+                        break;
+                    }
                 }
             }
         }
