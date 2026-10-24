@@ -80,7 +80,7 @@ void HowToPlay()
     texts.push_back(makeText(font, "- Beat a level to unlock the next adventure.", 18, brown, 110.f, 456.f));
 
     // ---------- WASD keycaps ----------
-    vector<string> keyLetters = {"W", "A", "S", "D"};
+    vector<string> keyLetters = {"^", "<-", "v", "->"};
     vector<string> keyActions = {"Up", "Left", "Down", "Right"};
 
     vector<RectangleShape> keyShadows;   // dark shape behind the cap (3D look)

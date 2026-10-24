@@ -19,8 +19,6 @@ const int MAX_MONSTERS=5;
  int monsterCols[MAX_MONSTERS];
  int monsterCount=0;
  bool monstersEnabled=false;
-
-
 struct cell{
     int rows;
     int cols;
@@ -43,6 +41,7 @@ float activecellsize;
 int playerRow=0;
 int playerCol=0;
 bool won=false;
+bool gameOver = false;
 
 void push(int r,int c){
     top++;
@@ -481,20 +480,21 @@ void drawMonsters(RenderWindow& window, Sprite& monsterSprite){
     }
 }
 
-void checkMonsterCollision(){
+bool checkMonsterCollision(){
     if(monstersEnabled==false){
-        return;
+        return false;
     }
     for(int i=0; i<monsterCount; i++){
         if(playerRow==monsterRows[i] && playerCol==monsterCols[i]){
             playerRow=0;
             playerCol=0;
             cout<<"Monster Caught You! Restart"<<endl;
+            return true;
             
         }
     }
 
-    return;
+    return false;
 }
 void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timerenabled, bool enableMonsters, const string& BackgroundPath, int level){
     activecellsize = cellsize;
@@ -514,12 +514,8 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                              static_cast<float>(windowSize.y)/imageSize.y
     });
 
-
-
     generate_maze(rows, cols);
     addExtraPaths(rows, cols, 8);
-
-
     monstersEnabled=enableMonsters;
     findSafePath();
     setupMonsters(2);
@@ -565,6 +561,30 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
         cout << "Could not load: " << musicFile << endl;
     }
 
+
+        // Collision sound (sirf level 4 aur 5 ke liye)
+    SoundBuffer collisionBuffer;
+    optional<Sound> collisionSound;
+
+    string collisionFile;
+
+    if (level == 4) {
+        collisionFile = "assets/snake.ogg";
+    }
+    else if (level == 5) {
+        collisionFile = "assets/bone.ogg";
+    }
+
+    if (!collisionFile.empty()) {
+        if (collisionBuffer.loadFromFile(collisionFile)) {
+            collisionSound.emplace(collisionBuffer);
+        }
+        else {
+            cout << "Could not load: " << collisionFile << endl;
+        }
+    }
+
+
     Text congratsText(font);
     congratsText.setString("CONGRATULATIONS!");
     congratsText.setCharacterSize(38);
@@ -585,6 +605,23 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
     continueText.setFillColor(Color::White);
     continueText.setPosition({210.f, 330.f});
 
+    Text gameOverText(font);
+gameOverText.setString("GAME OVER!");
+gameOverText.setCharacterSize(45);
+gameOverText.setFillColor(Color::Red);
+gameOverText.setPosition({250.f, 200.f});
+
+Text lostText(font);
+lostText.setString("You lost this level!");
+lostText.setCharacterSize(25);
+lostText.setFillColor(Color::White);
+lostText.setPosition({250.f, 270.f});
+
+Text retryText(font);
+retryText.setString("Press ENTER to retry");
+retryText.setCharacterSize(22);
+retryText.setFillColor(Color::White);
+retryText.setPosition({250.f, 330.f});
 
     bool returnToMenu = false;
 
@@ -620,6 +657,7 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
             if(remainingtime<0){
                 remainingtime=0;
             }
+            
     
             if(won==true){      
             }
@@ -628,9 +666,7 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                     "Time: "+to_string(remainingtime)
                 );
                 if(remainingtime==0 && won==false){
-                    cout<<"GAME OVER!!"<<endl;
-                    returnToMenu=true;
-                    break;
+                    gameOver=true;
                 }
             }
         }
@@ -643,6 +679,11 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 if (keyEvent->code == Keyboard::Key::Escape) {
                     returnToMenu = true;
                 }
+                else if (gameOver == true) {
+                    if (keyEvent->code == Keyboard::Key::Enter) {
+                         returnToMenu = true;
+                               }
+                          }
 
                 else if(won==true){
                     if(keyEvent->code==Keyboard::Key::Enter){
@@ -651,7 +692,9 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 }
                 else {
                     moveplayer(keyEvent->code);
-                    checkMonsterCollision();
+                    if (checkMonsterCollision() && collisionSound.has_value()) {
+                          collisionSound->play();
+                         }
 
                     if(won==true){
                         unlockNextLevel(level);
@@ -685,6 +728,25 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 window.draw(completedText);
                 window.draw(continueText);
             }
+
+
+        if (gameOver == true) {
+    RectangleShape overlay(
+        Vector2f(
+            static_cast<float>(windowSize.x),
+            static_cast<float>(windowSize.y)
+        )
+    );
+
+    overlay.setFillColor(Color(0, 0, 0, 210));
+    window.draw(overlay);
+
+    window.draw(gameOverText);
+    window.draw(lostText);
+    window.draw(retryText);
+}
+
+
         
         window.display();
     }
