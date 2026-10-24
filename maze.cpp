@@ -497,6 +497,16 @@ bool checkMonsterCollision(){
     return false;
 }
 void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timerenabled, bool enableMonsters, const string& BackgroundPath, int level){
+//=========fixing last bug=====
+    bool gameOver = false;
+    bool returnToMenu = false;
+
+    won = false;
+    playerRow = 0;
+    playerCol = 0;
+     Clock timer;
+    int timelimit=60;
+//==============
     activecellsize = cellsize;
     Texture backgroundTexture;
     Texture playerTexture;
@@ -520,8 +530,7 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
     findSafePath();
     setupMonsters(2);
     
-    Clock timer;
-    int timelimit=60;
+   
     Font font;
     if(font.openFromFile("assets/font.ttf")==false){
         cout<<"Not load."<<endl;
@@ -623,7 +632,7 @@ retryText.setCharacterSize(22);
 retryText.setFillColor(Color::White);
 retryText.setPosition({250.f, 330.f});
 
-    bool returnToMenu = false;
+    // bool returnToMenu = false;
 
     if(playerTexture.loadFromFile("assets/player.png")==false){
         cout<<"player load nhi hui"<<endl;

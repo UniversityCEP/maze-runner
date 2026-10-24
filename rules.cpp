@@ -71,7 +71,6 @@ void HowToPlay()
 
     // CONTROLS section
     texts.push_back(makeText(font, "HOW TO MOVE", 24, brown, 110.f, 222.f));
-    texts.push_back(makeText(font, "...or use the Arrow Keys if you prefer.", 20, brown, 110.f, 318.f));
 
     // TIPS section
     texts.push_back(makeText(font, "RUNNER TIPS", 24, brown, 110.f, 360.f));
