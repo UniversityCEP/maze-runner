@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <ctime>
+#include <SFML/Audio.hpp>
 #include "levels.hpp"
 using namespace std;
 using namespace sf;
@@ -476,9 +477,10 @@ void drawMonsters(RenderWindow& window, Sprite& monsterSprite){
             y+(activecellsize-monsterSize)/2.f
         });
         window.draw(monsterSprite);
-
+    
     }
 }
+
 void checkMonsterCollision(){
     if(monstersEnabled==false){
         return;
@@ -513,8 +515,11 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
     });
 
 
+
     generate_maze(rows, cols);
     addExtraPaths(rows, cols, 8);
+
+
     monstersEnabled=enableMonsters;
     findSafePath();
     setupMonsters(2);
@@ -530,6 +535,56 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
     timerText.setCharacterSize(24);
     timerText.setFillColor(Color::White);
     timerText.setPosition({20.f, 20.f});
+
+    Music backgroundMusic;
+
+    string musicFile;
+
+    if (level == 1) {
+        musicFile = "assets/musicl1.ogg";
+    }
+    else if (level == 2) {
+        musicFile = "assets/musicl2.ogg";
+    }
+    else if (level == 3) {
+        musicFile = "assets/musicl3.ogg";
+    }
+    else if (level == 4) {
+        musicFile = "assets/musicl4.ogg";
+    }
+    else if (level == 5) {
+        musicFile = "assets/musicl5.ogg";
+    }
+
+    if (backgroundMusic.openFromFile(musicFile)) {
+        backgroundMusic.setVolume(35.f);
+        backgroundMusic.setLooping(true);
+        backgroundMusic.play();
+    }
+    else {
+        cout << "Could not load: " << musicFile << endl;
+    }
+
+    Text congratsText(font);
+    congratsText.setString("CONGRATULATIONS!");
+    congratsText.setCharacterSize(38);
+    congratsText.setFillColor(Color::Yellow);
+    congratsText.setPosition({200.f, 200.f});
+
+    Text completedText(font);
+    completedText.setString(
+        "You completed Level " + to_string(level) + "!"
+    );
+    completedText.setCharacterSize(25);
+    completedText.setFillColor(Color::White);
+    completedText.setPosition({220.f, 270.f});
+
+    Text continueText(font);
+    continueText.setString("Press ENTER to return to levels");
+    continueText.setCharacterSize(20);
+    continueText.setFillColor(Color::White);
+    continueText.setPosition({210.f, 330.f});
+
 
     bool returnToMenu = false;
 
@@ -588,14 +643,18 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
                 if (keyEvent->code == Keyboard::Key::Escape) {
                     returnToMenu = true;
                 }
+
+                else if(won==true){
+                    if(keyEvent->code==Keyboard::Key::Enter){
+                        returnToMenu=true;
+                    }
+                }
                 else {
                     moveplayer(keyEvent->code);
                     checkMonsterCollision();
 
                     if(won==true){
                         unlockNextLevel(level);
-                        returnToMenu=true;
-                        break;
                     }
                 }
             }
@@ -612,6 +671,20 @@ void runmaze(RenderWindow& window,int rows,int cols,float cellsize, bool timeren
         if(timerenabled==true){
             window.draw(timerText);
         }
+
+        if(won==true){
+        RectangleShape overlay(
+            Vector2f(
+                static_cast<float>(windowSize.x),
+                static_cast<float>(windowSize.y))
+        );
+    
+                overlay.setFillColor(Color(0,0,0,210));
+                window.draw(overlay);
+                window.draw(congratsText);
+                window.draw(completedText);
+                window.draw(continueText);
+            }
         
         window.display();
     }

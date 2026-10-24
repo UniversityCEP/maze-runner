@@ -1,6 +1,6 @@
 //g++ main.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
 //g++ main.cpp Levels.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
-//g++ main.cpp Levels.cpp rules.cpp maze.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system
+//g++ main.cpp Levels.cpp rules.cpp maze.cpp -o main.exe -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 #include<SFML/Graphics.hpp>
 #include<iostream>
@@ -8,6 +8,7 @@
 #include "rules.hpp"
 #include "maze.hpp"
 #include<string>
+
 using namespace sf;
 using namespace std;
 int main(){
